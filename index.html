@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Supermercado</title>
+    
+    <!-- Ligações obrigatórias para o Chrome permitir a instalação via GitHub -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    
     <style>
         body {
             margin: 0;
@@ -32,7 +37,6 @@
             font-weight: bold;
             font-size: 22px;
         }
-        /* Mudámos para input do tipo text para controlar rigorosamente o que é digitado */
         input, select {
             width: 100%;
             padding: 16px;
@@ -105,11 +109,9 @@
 <div class="container">
     <h1>🛒 Preço Certo</h1>
 
-    <!-- Preço aceita vírgula/ponto mas corrige visualmente -->
     <label for="preco">Preço do Produto (€)</label>
     <input type="text" id="preco" inputmode="decimal" placeholder="0,00" onclick="this.select()" oninput="validarPreco(this)">
 
-    <!-- Quantidade bloqueia ativamente pontos e vírgulas -->
     <label for="quantidade">Quantidade (g ou ml)</label>
     <input type="text" id="quantidade" inputmode="numeric" placeholder="Ex: 950, 1000, 330" onclick="this.select()" oninput="validarQuantidade(this)">
 
@@ -132,19 +134,14 @@
 document.getElementById("btnCalcular").addEventListener("click", calcular);
 document.getElementById("btnLimpar").addEventListener("click", limparCampos);
 
-// Corrige o preço em tempo real enquanto o idoso digita
 function validarPreco(input) {
     let valor = input.value;
     
-    // Se começar com ponto ou vírgula (ex: .50 ou ,50), transforma em 0,50
     if (valor.startsWith('.') || valor.startsWith(',')) {
         valor = '0,' + valor.substring(1);
     }
     
-    // Substitui qualquer ponto por vírgula visualmente
     valor = valor.replace('.', ',');
-    
-    // Remove qualquer caractere que não seja número ou a primeira vírgula
     valor = valor.replace(/[^0-9,]/g, '');
     const partes = valor.split(',');
     if (partes.length > 2) {
@@ -154,14 +151,11 @@ function validarPreco(input) {
     input.value = valor;
 }
 
-// Bloqueia completamente pontos e vírgulas na quantidade
 function validarQuantidade(input) {
-    // Remove tudo o que não for estritamente um número inteiro (bloqueia . e ,)
     input.value = input.value.replace(/[^0-9]/g, '');
 }
 
 function calcular() {
-    // Converte a vírgula de volta a ponto apenas para o JavaScript fazer a conta
     const precoTexto = document.getElementById("preco").value.replace(',', '.');
     const qtdTexto = document.getElementById("quantidade").value;
 
@@ -211,6 +205,13 @@ function limparCampos() {
     document.getElementById("btnLimpar").style.display = "none";
     
     document.getElementById("preco").focus();
+}
+
+// Ativa o assistente offline apenas se o site for aberto via Servidor/GitHub (HTTPS/HTTP)
+if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js')
+        .then(() => console.log("Modo offline ativado com sucesso!"))
+        .catch(err => console.log("Erro no Service Worker:", err));
 }
 </script>
 
