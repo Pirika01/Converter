@@ -1,4 +1,4 @@
-const CACHE_NAME = "preco-kg-v1";
+const CACHE_NAME = "preco-kg-v2";
 
 const ASSETS = [
   "./",
