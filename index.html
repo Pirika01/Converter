@@ -110,16 +110,16 @@
 <body>
 
 <div class="container">
-    <h1>🛒 Preço por Kg</h1>
+    <h1 id="titulo-principal">🛒 Preço por Kg</h1>
 
-    <label for="preco">Preço do Produto (€)</label>
-    <input type="text" id="preco" inputmode="decimal" placeholder="0,00" onclick="this.select()" oninput="validarPreco(this)">
+    <label for="preco" id="label-preco">Preço do Produto (€)</label>
+    <input type="text" id="preco" inputmode="decimal" placeholder="0,00" autocomplete="off" aria-label="Preço do Produto" onclick="this.select()" oninput="validarPreco(this)">
 
-    <label for="quantidade">Quantidade (g ou ml)</label>
-    <input type="text" id="quantidade" inputmode="decimal" placeholder="Ex: 950, 1000, 1,5" onclick="this.select()" oninput="validarQuantidade(this)">
+    <label for="quantidade" id="label-quantidade">Quantidade (g ou ml)</label>
+    <input type="text" id="quantidade" inputmode="decimal" placeholder="Ex: 950, 1000, 1,5" autocomplete="off" aria-label="Quantidade" onclick="this.select()" oninput="validarQuantidade(this)">
 
-    <button id="btnCalcular">VER PREÇO</button>
-    <button id="btnLimpar">LIMPAR</button>
+    <button id="btnCalcular" aria-label="Calcular preço">VER PREÇO</button>
+    <button id="btnLimpar" aria-label="Limpar campos">LIMPAR</button>
 
     <div id="resultado-box">
         <div class="resultado-titulo" id="res-titulo">Preço por Kg ou Litro</div>
@@ -128,6 +128,271 @@
 </div>
 
 <script>
+// 🌐 Dicionário com variantes regionais e fallback por idioma base
+const dicionario = {
+    "pt-PT": {
+        titulo: "🛒 Preço por Kg",
+        labelPreco: "Preço do Produto (€)",
+        placeholderPreco: "0,00",
+        labelQuantidade: "Quantidade (g ou ml)",
+        placeholderQuantidade: "Ex: 950, 1000, 1,5",
+        btnCalcular: "VER PREÇO",
+        btnLimpar: "LIMPAR",
+        resultadoTitulo: "Preço por Kg ou Litro",
+        avisoTitulo: "Aviso",
+        avisoTexto: "Por favor, digite o preço e a quantidade.",
+        locale: "pt-PT",
+        moedaCodigo: "EUR",
+        unidade: "/kg"
+    },
+    "pt-BR": {
+        titulo: "🛒 Preço por Kg",
+        labelPreco: "Preço do Produto (R$)",
+        placeholderPreco: "0,00",
+        labelQuantidade: "Quantidade (g ou ml)",
+        placeholderQuantidade: "Ex: 950, 1000, 1,5",
+        btnCalcular: "VER PREÇO",
+        btnLimpar: "LIMPAR",
+        resultadoTitulo: "Preço por Kg ou Litro",
+        avisoTitulo: "Aviso",
+        avisoTexto: "Por favor, digite o preço e a quantidade.",
+        locale: "pt-BR",
+        moedaCodigo: "BRL",
+        unidade: "/kg"
+    },
+    "en-US": {
+        titulo: "🛒 Price per Kg",
+        labelPreco: "Product Price ($)",
+        placeholderPreco: "0.00",
+        labelQuantidade: "Quantity (g or ml)",
+        placeholderQuantidade: "Ex: 950, 1000, 1.5",
+        btnCalcular: "CALCULATE",
+        btnLimpar: "CLEAR",
+        resultadoTitulo: "Price per Kg or Liter",
+        avisoTitulo: "Warning",
+        avisoTexto: "Please enter the price and quantity.",
+        locale: "en-US",
+        moedaCodigo: "USD",
+        unidade: "/kg"
+    },
+    "en-GB": {
+        titulo: "🛒 Price per Kg",
+        labelPreco: "Product Price (£)",
+        placeholderPreco: "0.00",
+        labelQuantidade: "Quantity (g or ml)",
+        placeholderQuantidade: "Ex: 950, 1000, 1.5",
+        btnCalcular: "CALCULATE",
+        btnLimpar: "CLEAR",
+        resultadoTitulo: "Price per Kg or Liter",
+        avisoTitulo: "Warning",
+        avisoTexto: "Please enter the price and quantity.",
+        locale: "en-GB",
+        moedaCodigo: "GBP",
+        unidade: "/kg"
+    },
+    "en-AU": {
+        titulo: "🛒 Price per Kg",
+        labelPreco: "Product Price ($)",
+        placeholderPreco: "0.00",
+        labelQuantidade: "Quantity (g or ml)",
+        placeholderQuantidade: "Ex: 950, 1000, 1.5",
+        btnCalcular: "CALCULATE",
+        btnLimpar: "CLEAR",
+        resultadoTitulo: "Price per Kg or Liter",
+        avisoTitulo: "Warning",
+        avisoTexto: "Please enter the price and quantity.",
+        locale: "en-AU",
+        moedaCodigo: "AUD",
+        unidade: "/kg"
+    },
+    "es-ES": {
+        titulo: "🛒 Precio por Kg",
+        labelPreco: "Precio del Producto (€)",
+        placeholderPreco: "0,00",
+        labelQuantidade: "Cantidad (g o ml)",
+        placeholderQuantidade: "Ej: 950, 1000, 1,5",
+        btnCalcular: "CALCULAR",
+        btnLimpar: "LIMPIAR",
+        resultadoTitulo: "Precio por Kg o Litro",
+        avisoTitulo: "Aviso",
+        avisoTexto: "Por favor, introduzca el precio y la cantidad.",
+        locale: "es-ES",
+        moedaCodigo: "EUR",
+        unidade: "/kg"
+    },
+    "fr-FR": {
+        titulo: "🛒 Prix au Kg",
+        labelPreco: "Prix du Produit (€)",
+        placeholderPreco: "0,00",
+        labelQuantidade: "Quantité (g ou ml)",
+        placeholderQuantidade: "Ex: 950, 1000, 1,5",
+        btnCalcular: "CALCULER",
+        btnLimpar: "EFFACER",
+        resultadoTitulo: "Prix au Kg ou Litre",
+        avisoTitulo: "Attention",
+        avisoTexto: "Veuillez entrer le prix et la quantité.",
+        locale: "fr-FR",
+        moedaCodigo: "EUR",
+        unidade: "/kg"
+    },
+    "de-DE": {
+        titulo: "🛒 Preis pro Kg",
+        labelPreco: "Produktpreis (€)",
+        placeholderPreco: "0,00",
+        labelQuantidade: "Menge (g oder ml)",
+        placeholderQuantidade: "Bsp: 950, 1000, 1,5",
+        btnCalcular: "PREIS ANZEIGEN",
+        btnLimpar: "LÖSCHEN",
+        resultadoTitulo: "Preis pro Kg oder Liter",
+        avisoTitulo: "Hinweis",
+        avisoTexto: "Bitte geben Sie Preis und Menge ein.",
+        locale: "de-DE",
+        moedaCodigo: "EUR",
+        unidade: "/kg"
+    },
+    "it-IT": {
+        titulo: "🛒 Prezzo al Kg",
+        labelPreco: "Prezzo del Prodotto (€)",
+        placeholderPreco: "0,00",
+        labelQuantidade: "Quantità (g o ml)",
+        placeholderQuantidade: "Es: 950, 1000, 1,5",
+        btnCalcular: "CALCOLA",
+        btnLimpar: "CANCELLA",
+        resultadoTitulo: "Prezzo al Kg o Litro",
+        avisoTitulo: "Avviso",
+        avisoTexto: "Inserisci il prezzo e la quantità.",
+        locale: "it-IT",
+        moedaCodigo: "EUR",
+        unidade: "/kg"
+    },
+    "nl-NL": {
+        titulo: "🛒 Prijs per Kg",
+        labelPreco: "Productprijs (€)",
+        placeholderPreco: "0,00",
+        labelQuantidade: "Hoeveelheid (g of ml)",
+        placeholderQuantidade: "Bv: 950, 1000, 1,5",
+        btnCalcular: "BEREKENEN",
+        btnLimpar: "WISSEN",
+        resultadoTitulo: "Prijs per Kg of Liter",
+        avisoTitulo: "Waarschuwing",
+        avisoTexto: "Voer de prijs en hoeveelheid in.",
+        locale: "nl-NL",
+        moedaCodigo: "EUR",
+        unidade: "/kg"
+    },
+    "pl-PL": {
+        titulo: "🛒 Cena za Kg",
+        labelPreco: "Cena Produktu (zł)",
+        placeholderPreco: "0,00",
+        labelQuantidade: "Ilość (g lub ml)",
+        placeholderQuantidade: "Np: 950, 1000, 1,5",
+        btnCalcular: "OBLICZ",
+        btnLimpar: "WYCZYŚĆ",
+        resultadoTitulo: "Cena za Kg lub Litr",
+        avisoTitulo: "Uwaga",
+        avisoTexto: "Wprowadź cenę i ilość.",
+        locale: "pl-PL",
+        moedaCodigo: "PLN",
+        unidade: "/kg"
+    },
+    "ro-RO": {
+        titulo: "🛒 Preț pe Kg",
+        labelPreco: "Prețul Produsului (lei)",
+        placeholderPreco: "0,00",
+        labelQuantidade: "Cantitate (g sau ml)",
+        placeholderQuantidade: "Ex: 950, 1000, 1,5",
+        btnCalcular: "CALCULEAZĂ",
+        btnLimpar: "ȘTERGE",
+        resultadoTitulo: "Preț pe Kg sau Litru",
+        avisoTitulo: "Atenție",
+        avisoTexto: "Vă rugăm să introduceți prețul și cantitatea.",
+        locale: "ro-RO",
+        moedaCodigo: "RON",
+        unidade: "/kg"
+    },
+    "ja-JP": {
+        titulo: "🛒 キログラム単価",
+        labelPreco: "商品価格 (¥)",
+        placeholderPreco: "0.00",
+        labelQuantidade: "量 (g または ml)",
+        placeholderQuantidade: "例: 950, 1000, 1.5",
+        btnCalcular: "計算する",
+        btnLimpar: "クリア",
+        resultadoTitulo: "キログラムまたはリットル単価",
+        avisoTitulo: "注意",
+        avisoTexto: "価格と量を入力してください。",
+        locale: "ja-JP",
+        moedaCodigo: "JPY",
+        unidade: "/kg"
+    },
+    "zh-CN": {
+        titulo: "🛒 每公斤价格",
+        labelPreco: "商品价格 (¥)",
+        placeholderPreco: "0.00",
+        labelQuantidade: "数量 (克 或 毫升)",
+        placeholderQuantidade: "例如: 950, 1000, 1.5",
+        btnCalcular: "计算",
+        btnLimpar: "清除",
+        resultadoTitulo: "每公斤或每升价格",
+        avisoTitulo: "警告",
+        avisoTexto: "请输入价格和数量。",
+        locale: "zh-CN",
+        moedaCodigo: "CNY",
+        unidade: "/kg"
+    }
+};
+
+// Fallback por idioma base: se não houver variante exata, usamos a primeira variante disponível
+const fallbackPorIdioma = {
+    en: "en-US",
+    pt: "pt-PT",
+    es: "es-ES",
+    fr: "fr-FR",
+    de: "de-DE",
+    it: "it-IT",
+    nl: "nl-NL",
+    pl: "pl-PL",
+    ro: "ro-RO",
+    ja: "ja-JP",
+    zh: "zh-CN"
+};
+
+function obterTraducao(langCode) {
+    if (dicionario[langCode]) return dicionario[langCode];
+    const baseLang = langCode.split('-')[0];
+    const fallback = fallbackPorIdioma[baseLang];
+    if (fallback && dicionario[fallback]) return dicionario[fallback];
+    return dicionario["pt-PT"];
+}
+
+function aplicarIdioma() {
+    const lang = navigator.language || 'pt-PT';
+    const trad = obterTraducao(lang);
+
+    document.getElementById("titulo-principal").innerText = trad.titulo;
+    document.getElementById("label-preco").innerText = trad.labelPreco;
+    document.getElementById("preco").placeholder = trad.placeholderPreco;
+    document.getElementById("preco").setAttribute("aria-label", trad.labelPreco);
+    document.getElementById("label-quantidade").innerText = trad.labelQuantidade;
+    document.getElementById("quantidade").placeholder = trad.placeholderQuantidade;
+    document.getElementById("quantidade").setAttribute("aria-label", trad.labelQuantidade);
+    document.getElementById("btnCalcular").innerText = trad.btnCalcular;
+    document.getElementById("btnCalcular").setAttribute("aria-label", trad.btnCalcular);
+    document.getElementById("btnLimpar").innerText = trad.btnLimpar;
+    document.getElementById("btnLimpar").setAttribute("aria-label", trad.btnLimpar);
+
+    const tituloSemIcone = trad.titulo.replace('🛒 ', '');
+    document.title = tituloSemIcone;
+    const metaTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if (metaTitle) metaTitle.setAttribute('content', tituloSemIcone);
+
+    window.tradAtiva = trad;
+    // Obtém o separador decimal real para este locale (ex.: ',' para pt, '.' para en)
+    window.decimalSep = (1.1).toLocaleString(trad.locale).charAt(1);
+}
+
+aplicarIdioma();
+
 document.getElementById("btnCalcular").addEventListener("click", calcular);
 document.getElementById("btnLimpar").addEventListener("click", limparCampos);
 
@@ -147,49 +412,60 @@ document.getElementById("preco").addEventListener("focus", esconderResultado);
 document.getElementById("quantidade").addEventListener("focus", esconderResultado);
 
 function validarPreco(input) {
+    if (!window.decimalSep) return;
     let valor = input.value;
-    if (valor.startsWith('.') || valor.startsWith(',')) {
-        valor = '0,' + valor.substring(1);
-    }
-    valor = valor.replace('.', ',');
-    valor = valor.replace(/[^0-9,]/g, '');
-    const partes = valor.split(',');
+    const sep = window.decimalSep; // ',' ou '.'
+    const outroSep = (sep === ',') ? '.' : ',';
+    // Converte o outro separador para o separador correto
+    valor = valor.replace(new RegExp(`\\${outroSep}`, 'g'), sep);
+    // Remove caracteres não numéricos (exceto o separador correto)
+    valor = valor.replace(new RegExp(`[^0-9\\${sep}]`, 'g'), '');
+    // Garante que só há um separador decimal
+    const partes = valor.split(sep);
     if (partes.length > 2) {
-        valor = partes[0] + ',' + partes.slice(1).join('');
+        valor = partes[0] + sep + partes.slice(1).join('');
+    }
+    // Se começar com o separador, acrescenta um 0 à esquerda
+    if (valor.startsWith(sep)) {
+        valor = '0' + sep + valor.substring(1);
     }
     input.value = valor;
 }
 
 function validarQuantidade(input) {
+    if (!window.decimalSep) return;
     let val = input.value;
-    // Permite apenas números, vírgula e ponto
-    val = val.replace(/[^0-9,.]/g, '');
-    // Substitui ponto por vírgula para uniformizar (mas vai manter-se como está)
-    val = val.replace('.', ',');
-    // Garante que só há uma vírgula
-    const partes = val.split(',');
-    if (partes.length > 2) {
-        val = partes[0] + ',' + partes.slice(1).join('');
+    const sep = window.decimalSep;
+    const outroSep = (sep === ',') ? '.' : ',';
+    // Converte o outro separador para o separador correto
+    val = val.replace(new RegExp(`\\${outroSep}`, 'g'), sep);
+    // Remove caracteres não numéricos (exceto o separador correto)
+    val = val.replace(new RegExp(`[^0-9\\${sep}]`, 'g'), '');
+    // Mantém apenas a primeira ocorrência do separador
+    const primeiraVirgula = val.indexOf(sep);
+    if (primeiraVirgula !== -1) {
+        const antes = val.substring(0, primeiraVirgula + 1);
+        const depois = val.substring(primeiraVirgula + 1).replace(new RegExp(`\\${sep}`, 'g'), '');
+        val = antes + depois;
     }
     input.value = val;
 }
 
 function interpretarQuantidade(valorTexto) {
-    // Remove espaços e letras comuns (kg, g, l, ml, etc.)
-    let limpo = valorTexto.replace(/[^0-9,.]/g, '').replace(',', '.');
+    const sep = window.decimalSep;
+    let limpo = valorTexto.replace(new RegExp(`\\${sep}`, 'g'), '.').replace(/[^0-9.]/g, '');
     if (limpo === '' || limpo === '.') return NaN;
     let num = parseFloat(limpo);
     if (isNaN(num)) return NaN;
-    // Se o valor original continha vírgula ou ponto, assumimos que está em kg/L e convertemos
-    if (valorTexto.includes(',') || valorTexto.includes('.')) {
+    if (valorTexto.includes(sep)) {
         return Math.round(num * 1000);
     } else {
-        return Math.round(num); // já está em gramas/ml
+        return Math.round(num);
     }
 }
 
 function calcular() {
-    const precoTexto = document.getElementById("preco").value.replace(',', '.');
+    const precoTexto = document.getElementById("preco").value.replace(window.decimalSep, '.');
     const qtdOriginal = document.getElementById("quantidade").value.trim();
 
     const preco = parseFloat(precoTexto);
@@ -201,26 +477,34 @@ function calcular() {
     const btnCalcular = document.getElementById("btnCalcular");
     const btnLimpar = document.getElementById("btnLimpar");
 
+    const trad = window.tradAtiva;
+
     if (isNaN(preco) || isNaN(qtd) || qtd <= 0) {
-        txtTitulo.innerText = "Aviso";
+        txtTitulo.innerText = trad.avisoTitulo;
         caixaResultado.style.display = "block";
         caixaResultado.style.background = "#fef2f2";
         caixaResultado.style.borderColor = "#ef4444";
         txtValor.style.color = "#991b1b";
         txtValor.style.fontSize = "22px";
-        txtValor.innerText = "Por favor, digite o preço e a quantidade.";
+        txtValor.innerText = trad.avisoTexto;
         return;
     }
 
     let precoFinal = (preco * 1000) / qtd;
 
-    txtTitulo.innerText = "Preço por Kg ou Litro";
+    const formatoMoeda = new Intl.NumberFormat(trad.locale, {
+        style: 'currency',
+        currency: trad.moedaCodigo
+    });
+    const precoFormatado = formatoMoeda.format(precoFinal);
+    txtValor.innerText = `${precoFormatado} ${trad.unidade}`;
+
+    txtTitulo.innerText = trad.resultadoTitulo;
     caixaResultado.style.display = "block";
     caixaResultado.style.background = "#ecfdf5";
     caixaResultado.style.borderColor = "#10b981";
     txtValor.style.color = "#047857";
     txtValor.style.fontSize = "40px";
-    txtValor.innerText = `${precoFinal.toFixed(2).replace('.', ',')} €`;
 
     btnCalcular.style.display = "none";
     btnLimpar.style.display = "block";
