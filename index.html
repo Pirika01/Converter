@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preço por Kg</title>
+    
+    <!-- Ligações obrigatórias para o Chrome permitir a instalação via GitHub -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Preço por Kg">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+            color: #111;
+            padding: 12px;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #1e3a8a;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 22px;
+        }
+        input {
+            width: 100%;
+            padding: 16px;
+            font-size: 24px;
+            box-sizing: border-box;
+            border: 3px solid #64748b;
+            border-radius: 10px;
+            margin-top: 5px;
+            background: #fff;
+        }
+        input:focus {
+            border-color: #2563eb;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 20px;
+            font-size: 26px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 25px;
+        }
+        #btnCalcular {
+            background: #059669;
+            color: white;
+        }
+        #btnCalcular:active {
+            background: #047857;
+            transform: scale(0.98);
+        }
+        /* O botão limpar começa escondido por padrão */
+        #btnLimpar {
+            background: #64748b;
+            color: white;
+            display: none; 
+        }
+        #btnLimpar:active {
+            background: #475569;
+            transform: scale(0.98);
+        }
+        #resultado-box {
+            margin-top: 25px;
+            background: #ecfdf5;
+            border: 3px solid #10b981;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+        }
+        .resultado-titulo {
+            font-size: 20px;
+            color: #065f46;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .resultado-valor {
+            font-size: 40px;
+            font-weight: 900;
+            color: #047857;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🛒 Preço por Kg</h1>
+
+    <!-- Chamam a função ocultarAviso() sempre que o utilizador digita algo novo -->
+    <label for="preco">Preço do Produto (€)</label>
+    <input type="text" id="preco" inputmode="decimal" placeholder="0,00" onclick="this.select()" oninput="validarPreco(this); ocultarAviso();">
+
+    <label for="quantidade">Quantidade (g ou ml)</label>
+    <input type="text" id="quantidade" inputmode="numeric" placeholder="Ex: 950, 1000, 330" onclick="this.select()" oninput="validarQuantidade(this); ocultarAviso();">
+
+    <button id="btnCalcular">VER PREÇO</button>
+    <button id="btnLimpar">LIMPAR</button>
+
+    <div id="resultado-box">
+        <div class="resultado-titulo" id="res-titulo">Preço por Kg ou Litro</div>
+        <div class="resultado-valor" id="res-valor">0,00 €</div>
+    </div>
+</div>
+
+<script>
+document.getElementById("btnCalcular").addEventListener("click", calcular);
+document.getElementById("btnLimpar").addEventListener("click", limparCampos);
+
+let timeoutAviso = null; // Guarda o temporizador do aviso
+
+function validarPreco(input) {
+    let valor = input.value;
+    if (valor.startsWith('.') || valor.startsWith(',')) {
+        valor = '0,' + valor.substring(1);
+    }
+    valor = valor.replace('.', ',');
+    valor = valor.replace(/[^0-9,]/g, '');
+    const partes = valor.split(',');
+    if (partes.length > 2) {
+        valor = partes[0] + ',' + partes.slice(1).join('');
+    }
+    input.value = valor;
+}
+
+function validarQuantidade(input) {
+    input.value = input.value.replace(/[^0-9]/g, '');
+}
+
+// Faz o aviso desaparecer se o utilizador começar a corrigir os campos
+function ocultarAviso() {
+    const caixaResultado = document.getElementById("resultado-box");
+    const txtTitulo = document.getElementById("res-titulo");
+    
+    // Só esconde se o que estiver lá dentro for o Aviso de erro
+    if (caixaResultado.style.display === "block" && txtTitulo.innerText === "Aviso") {
+        caixaResultado.style.display = "none";
+        clearTimeout(timeoutAviso); // Cancela o temporizador antigo
+    }
+}
+
+function calcular() {
+    const precoTexto = document.getElementById("preco").value.replace(',', '.');
+    const qtdTexto = document.getElementById("quantidade").value;
+
+    const preco = parseFloat(precoTexto);
+    const qtd = parseInt(qtdTexto, 10);
+
+    const caixaResultado = document.getElementById("resultado-box");
+    const txtTitulo = document.getElementById("res-titulo");
+    const txtValor = document.getElementById("res-valor");
+    const btnCalcular = document.getElementById("btnCalcular");
+    const btnLimpar = document.getElementById("btnLimpar");
+
+    // Limpa qualquer temporizador que tenha ficado ativo
+    clearTimeout(timeoutAviso);
+
+    if (isNaN(preco) || isNaN(qtd) || qtd <= 0) {
+        txtTitulo.innerText = "Aviso";
+        caixaResultado.style.display = "block";
+        caixaResultado.style.background = "#fef2f2";
+        caixaResultado.style.borderColor = "#ef4444";
+        txtValor.style.color = "#991b1b";
+        txtValor.style.fontSize = "22px";
+        txtValor.innerText = "Por favor, digite o preço e a quantidade.";
+        
+        // Mantém o botão calcular ativo no erro para eles corrigirem, mas esconde o aviso após 4 segundos
+        timeoutAviso = setTimeout(() => {
+            if (txtTitulo.innerText === "Aviso") {
+                caixaResultado.style.display = "none";
+            }
+        }, 4000); 
+        return;
+    }
+
+    let precoFinal = (preco * 1000) / qtd;
+
+    // Ajustes visuais de sucesso
+    txtTitulo.innerText = "Preço por Kg ou Litro";
+    caixaResultado.style.display = "block";
+    caixaResultado.style.background = "#ecfdf5";
+    caixaResultado.style.borderColor = "#10b981";
+    txtValor.style.color = "#047857";
+    txtValor.style.fontSize = "40px";
+    txtValor.innerText = `${precoFinal.toFixed(2).replace('.', ',')} €`;
+    
+    // Alternância dos botões: Esconde o Calcular e mostra o Limpar
+    btnCalcular.style.display = "none";
+    btnLimpar.style.display = "block";
+}
+
+function limparCampos() {
+    document.getElementById("preco").value = "";
+    document.getElementById("quantidade").value = "";
+    
+    document.getElementById("resultado-box").style.display = "none";
+    
+    // Alternância dos botões: Mostra o Calcular e esconde o Limpar
+    document.getElementById("btnCalcular").style.display = "block";
+    document.getElementById("btnLimpar").style.display = "none";
+    
+    clearTimeout(timeoutAviso);
+    document.getElementById("preco").focus();
+}
+
+if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js')
+        .then(() => console.log("Modo offline ativado com sucesso!"))
+        .catch(err => console.log("Erro no Service Worker:", err));
+}
+</script>
+
+</body>
+</html>
