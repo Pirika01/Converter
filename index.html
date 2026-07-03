@@ -7,7 +7,7 @@
     
     <!-- Ligações obrigatórias para o Chrome permitir a instalação via GitHub -->
     <link rel="apple-touch-icon" href="icon-192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Preço por Kg">
 
@@ -75,7 +75,6 @@
             background: #047857;
             transform: scale(0.98);
         }
-        /* O botão limpar começa escondido por padrão */
         #btnLimpar {
             background: #64748b;
             color: white;
@@ -114,12 +113,11 @@
 <div class="container">
     <h1>🛒 Preço por Kg</h1>
 
-    <!-- Chamam a função ocultarAviso() sempre que o utilizador digita algo novo -->
     <label for="preco">Preço do Produto (€)</label>
-    <input type="text" id="preco" inputmode="decimal" placeholder="0,00" onclick="this.select()" oninput="validarPreco(this); ocultarAviso();">
+    <input type="text" id="preco" inputmode="decimal" placeholder="0,00" onclick="this.select()" oninput="validarPreco(this)">
 
     <label for="quantidade">Quantidade (g ou ml)</label>
-    <input type="text" id="quantidade" inputmode="numeric" placeholder="Ex: 950, 1000, 330" onclick="this.select()" oninput="validarQuantidade(this); ocultarAviso();">
+    <input type="text" id="quantidade" inputmode="numeric" placeholder="Ex: 950, 1000, 330" onclick="this.select()" oninput="validarQuantidade(this)">
 
     <button id="btnCalcular">VER PREÇO</button>
     <button id="btnLimpar">LIMPAR</button>
@@ -134,7 +132,16 @@
 document.getElementById("btnCalcular").addEventListener("click", calcular);
 document.getElementById("btnLimpar").addEventListener("click", limparCampos);
 
-let timeoutAviso = null; // Guarda o temporizador do aviso
+// O aviso/resultado desaparece assim que o utilizador toca num campo
+function esconderResultado() {
+    const caixaResultado = document.getElementById("resultado-box");
+    if (caixaResultado.style.display === "block") {
+        caixaResultado.style.display = "none";
+    }
+}
+
+document.getElementById("preco").addEventListener("focus", esconderResultado);
+document.getElementById("quantidade").addEventListener("focus", esconderResultado);
 
 function validarPreco(input) {
     let valor = input.value;
@@ -154,18 +161,6 @@ function validarQuantidade(input) {
     input.value = input.value.replace(/[^0-9]/g, '');
 }
 
-// Faz o aviso desaparecer se o utilizador começar a corrigir os campos
-function ocultarAviso() {
-    const caixaResultado = document.getElementById("resultado-box");
-    const txtTitulo = document.getElementById("res-titulo");
-    
-    // Só esconde se o que estiver lá dentro for o Aviso de erro
-    if (caixaResultado.style.display === "block" && txtTitulo.innerText === "Aviso") {
-        caixaResultado.style.display = "none";
-        clearTimeout(timeoutAviso); // Cancela o temporizador antigo
-    }
-}
-
 function calcular() {
     const precoTexto = document.getElementById("preco").value.replace(',', '.');
     const qtdTexto = document.getElementById("quantidade").value;
@@ -179,9 +174,6 @@ function calcular() {
     const btnCalcular = document.getElementById("btnCalcular");
     const btnLimpar = document.getElementById("btnLimpar");
 
-    // Limpa qualquer temporizador que tenha ficado ativo
-    clearTimeout(timeoutAviso);
-
     if (isNaN(preco) || isNaN(qtd) || qtd <= 0) {
         txtTitulo.innerText = "Aviso";
         caixaResultado.style.display = "block";
@@ -190,19 +182,15 @@ function calcular() {
         txtValor.style.color = "#991b1b";
         txtValor.style.fontSize = "22px";
         txtValor.innerText = "Por favor, digite o preço e a quantidade.";
-        
-        // Mantém o botão calcular ativo no erro para eles corrigirem, mas esconde o aviso após 4 segundos
-        timeoutAviso = setTimeout(() => {
-            if (txtTitulo.innerText === "Aviso") {
-                caixaResultado.style.display = "none";
-            }
-        }, 4000); 
+
+        // Em caso de erro, esconder CALCULAR e mostrar LIMPAR
+        btnCalcular.style.display = "none";
+        btnLimpar.style.display = "block";
         return;
     }
 
     let precoFinal = (preco * 1000) / qtd;
 
-    // Ajustes visuais de sucesso
     txtTitulo.innerText = "Preço por Kg ou Litro";
     caixaResultado.style.display = "block";
     caixaResultado.style.background = "#ecfdf5";
@@ -210,8 +198,7 @@ function calcular() {
     txtValor.style.color = "#047857";
     txtValor.style.fontSize = "40px";
     txtValor.innerText = `${precoFinal.toFixed(2).replace('.', ',')} €`;
-    
-    // Alternância dos botões: Esconde o Calcular e mostra o Limpar
+
     btnCalcular.style.display = "none";
     btnLimpar.style.display = "block";
 }
@@ -219,14 +206,12 @@ function calcular() {
 function limparCampos() {
     document.getElementById("preco").value = "";
     document.getElementById("quantidade").value = "";
-    
+
     document.getElementById("resultado-box").style.display = "none";
-    
-    // Alternância dos botões: Mostra o Calcular e esconde o Limpar
+
     document.getElementById("btnCalcular").style.display = "block";
     document.getElementById("btnLimpar").style.display = "none";
-    
-    clearTimeout(timeoutAviso);
+
     document.getElementById("preco").focus();
 }
 
