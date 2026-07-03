@@ -116,7 +116,7 @@
     <input type="text" id="preco" inputmode="decimal" placeholder="0,00" onclick="this.select()" oninput="validarPreco(this)">
 
     <label for="quantidade">Quantidade (g ou ml)</label>
-    <input type="text" id="quantidade" inputmode="numeric" placeholder="Ex: 950, 1000, 330" onclick="this.select()" oninput="validarQuantidade(this)">
+    <input type="text" id="quantidade" inputmode="decimal" placeholder="Ex: 950, 1000, 1,5" onclick="this.select()" oninput="validarQuantidade(this)">
 
     <button id="btnCalcular">VER PREÇO</button>
     <button id="btnLimpar">LIMPAR</button>
@@ -139,7 +139,6 @@ function esconderResultado() {
 
     if (caixaResultado.style.display === "block") {
         caixaResultado.style.display = "none";
-        // Voltar sempre ao estado inicial: VER PREÇO visível, LIMPAR escondido
         btnCalcular.style.display = "block";
         btnLimpar.style.display = "none";
     }
@@ -163,7 +162,26 @@ function validarPreco(input) {
 }
 
 function validarQuantidade(input) {
-    input.value = input.value.replace(/[^0-9]/g, '');
+    let val = input.value;
+
+    // Se contiver vírgula ou ponto, assumimos que é um valor em Kg ou Litros
+    if (val.includes(',') || val.includes('.')) {
+        val = val.replace(',', '.');
+        // Remove tudo exceto números e ponto
+        val = val.replace(/[^0-9.]/g, '');
+        let num = parseFloat(val);
+        if (!isNaN(num)) {
+            // Converte para gramas/ml (multiplica por 1000 e arredonda)
+            val = Math.round(num * 1000).toString();
+        } else {
+            val = '';
+        }
+    } else {
+        // Apenas gramas/ml: remove tudo o que não for dígito
+        val = val.replace(/[^0-9]/g, '');
+    }
+
+    input.value = val;
 }
 
 function calcular() {
@@ -180,7 +198,6 @@ function calcular() {
     const btnLimpar = document.getElementById("btnLimpar");
 
     if (isNaN(preco) || isNaN(qtd) || qtd <= 0) {
-        // Mostrar aviso
         txtTitulo.innerText = "Aviso";
         caixaResultado.style.display = "block";
         caixaResultado.style.background = "#fef2f2";
@@ -189,13 +206,12 @@ function calcular() {
         txtValor.style.fontSize = "22px";
         txtValor.innerText = "Por favor, digite o preço e a quantidade.";
 
-        // NÃO alterar os botões: o VER PREÇO continua visível, LIMPAR escondido
+        // Em caso de erro, NÃO alteramos os botões (VER PREÇO continua visível, LIMPAR escondido)
         return;
     }
 
     let precoFinal = (preco * 1000) / qtd;
 
-    // Sucesso: esconder VER PREÇO e mostrar LIMPAR
     txtTitulo.innerText = "Preço por Kg ou Litro";
     caixaResultado.style.display = "block";
     caixaResultado.style.background = "#ecfdf5";
