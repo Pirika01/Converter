@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preço por Kg</title>
     
-    <!-- Ligações obrigatórias para o Chrome permitir a instalação via GitHub -->
     <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -132,11 +131,17 @@
 document.getElementById("btnCalcular").addEventListener("click", calcular);
 document.getElementById("btnLimpar").addEventListener("click", limparCampos);
 
-// O aviso/resultado desaparece assim que o utilizador toca num campo
+// Quando o utilizador toca num campo, esconde o resultado/aviso e repõe os botões no estado normal
 function esconderResultado() {
     const caixaResultado = document.getElementById("resultado-box");
+    const btnCalcular = document.getElementById("btnCalcular");
+    const btnLimpar = document.getElementById("btnLimpar");
+
     if (caixaResultado.style.display === "block") {
         caixaResultado.style.display = "none";
+        // Voltar sempre ao estado inicial: VER PREÇO visível, LIMPAR escondido
+        btnCalcular.style.display = "block";
+        btnLimpar.style.display = "none";
     }
 }
 
@@ -175,6 +180,7 @@ function calcular() {
     const btnLimpar = document.getElementById("btnLimpar");
 
     if (isNaN(preco) || isNaN(qtd) || qtd <= 0) {
+        // Mostrar aviso
         txtTitulo.innerText = "Aviso";
         caixaResultado.style.display = "block";
         caixaResultado.style.background = "#fef2f2";
@@ -183,14 +189,13 @@ function calcular() {
         txtValor.style.fontSize = "22px";
         txtValor.innerText = "Por favor, digite o preço e a quantidade.";
 
-        // Em caso de erro, esconder CALCULAR e mostrar LIMPAR
-        btnCalcular.style.display = "none";
-        btnLimpar.style.display = "block";
+        // NÃO alterar os botões: o VER PREÇO continua visível, LIMPAR escondido
         return;
     }
 
     let precoFinal = (preco * 1000) / qtd;
 
+    // Sucesso: esconder VER PREÇO e mostrar LIMPAR
     txtTitulo.innerText = "Preço por Kg ou Litro";
     caixaResultado.style.display = "block";
     caixaResultado.style.background = "#ecfdf5";
