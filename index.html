@@ -131,7 +131,6 @@
 document.getElementById("btnCalcular").addEventListener("click", calcular);
 document.getElementById("btnLimpar").addEventListener("click", limparCampos);
 
-// Quando o utilizador toca num campo, esconde o resultado/aviso e repõe os botões no estado normal
 function esconderResultado() {
     const caixaResultado = document.getElementById("resultado-box");
     const btnCalcular = document.getElementById("btnCalcular");
@@ -163,33 +162,38 @@ function validarPreco(input) {
 
 function validarQuantidade(input) {
     let val = input.value;
-
-    // Se contiver vírgula ou ponto, assumimos que é um valor em Kg ou Litros
-    if (val.includes(',') || val.includes('.')) {
-        val = val.replace(',', '.');
-        // Remove tudo exceto números e ponto
-        val = val.replace(/[^0-9.]/g, '');
-        let num = parseFloat(val);
-        if (!isNaN(num)) {
-            // Converte para gramas/ml (multiplica por 1000 e arredonda)
-            val = Math.round(num * 1000).toString();
-        } else {
-            val = '';
-        }
-    } else {
-        // Apenas gramas/ml: remove tudo o que não for dígito
-        val = val.replace(/[^0-9]/g, '');
+    // Permite apenas números, vírgula e ponto
+    val = val.replace(/[^0-9,.]/g, '');
+    // Substitui ponto por vírgula para uniformizar (mas vai manter-se como está)
+    val = val.replace('.', ',');
+    // Garante que só há uma vírgula
+    const partes = val.split(',');
+    if (partes.length > 2) {
+        val = partes[0] + ',' + partes.slice(1).join('');
     }
-
     input.value = val;
+}
+
+function interpretarQuantidade(valorTexto) {
+    // Remove espaços e letras comuns (kg, g, l, ml, etc.)
+    let limpo = valorTexto.replace(/[^0-9,.]/g, '').replace(',', '.');
+    if (limpo === '' || limpo === '.') return NaN;
+    let num = parseFloat(limpo);
+    if (isNaN(num)) return NaN;
+    // Se o valor original continha vírgula ou ponto, assumimos que está em kg/L e convertemos
+    if (valorTexto.includes(',') || valorTexto.includes('.')) {
+        return Math.round(num * 1000);
+    } else {
+        return Math.round(num); // já está em gramas/ml
+    }
 }
 
 function calcular() {
     const precoTexto = document.getElementById("preco").value.replace(',', '.');
-    const qtdTexto = document.getElementById("quantidade").value;
+    const qtdOriginal = document.getElementById("quantidade").value.trim();
 
     const preco = parseFloat(precoTexto);
-    const qtd = parseInt(qtdTexto, 10);
+    const qtd = interpretarQuantidade(qtdOriginal);
 
     const caixaResultado = document.getElementById("resultado-box");
     const txtTitulo = document.getElementById("res-titulo");
@@ -205,8 +209,6 @@ function calcular() {
         txtValor.style.color = "#991b1b";
         txtValor.style.fontSize = "22px";
         txtValor.innerText = "Por favor, digite o preço e a quantidade.";
-
-        // Em caso de erro, NÃO alteramos os botões (VER PREÇO continua visível, LIMPAR escondido)
         return;
     }
 
